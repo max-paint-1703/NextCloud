@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  nextcloud:
+    image: nextcloud:latest
+    container_name: nextcloud_app
+    restart: always
+    networks:
+      - nextcloud_net
+    volumes:
+      - nextcloud_data:/var/www/html
+      - ./data:/var/www/html/data
+    environment:
+      - MYSQL_HOST=nextcloud_db
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      - MYSQL_PASSWORD=your_db_password
+      - NEXTCLOUD_TRUSTED_DOMAINS=your-domain.com
+
+  nextcloud_db:
+    image: mariadb:10.6
+    container_name: nextcloud_db
+    restart: always
+    networks:
+      - nextcloud_net
+    volumes:
+      - db_data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=your_root_db_password
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      - MYSQL_PASSWORD=your_db_password
+
+  nginx:
+    image: nginx:alpine
+    container_name: nextcloud_nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - nextcloud_net
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+      - ./certbot/www:/var/www/certbot:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+    depends_on:
+      - nextcloud
+
+  certbot:
+    image: certbot/certbot
+    container_name: nextcloud_certbot
+    restart: unless-stopped
+    volumes:
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    depends_on:
+      - nginx
+
+networks:
+  nextcloud_net:
+    driver: bridge
+
+volumes:
+  nextcloud_data:
+  db_data:
