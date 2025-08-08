@@ -14,8 +14,8 @@ services:
       - MYSQL_HOST=nextcloud_db
       - MYSQL_DATABASE=nextcloud
       - MYSQL_USER=nextcloud
-      - MYSQL_PASSWORD=Asdasdqwe123!
-      - NEXTCLOUD_TRUSTED_DOMAINS=your-domain.com
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - NEXTCLOUD_TRUSTED_DOMAINS=${DOMAIN}
 
   nextcloud_db:
     image: mariadb:10.6
@@ -26,10 +26,10 @@ services:
     volumes:
       - db_data:/var/lib/mysql
     environment:
-      - MYSQL_ROOT_PASSWORD=Asdasdqwe123!
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
       - MYSQL_DATABASE=nextcloud
       - MYSQL_USER=nextcloud
-      - MYSQL_PASSWORD=Asdasdqwe123!
+      - MYSQL_PASSWORD=${DB_PASSWORD}
 
   nginx:
     image: nginx:alpine
